@@ -11,10 +11,10 @@ assert LooseVersion(tf.__version__) >= LooseVersion('1.0'), 'Please use TensorFl
 print('TensorFlow Version: {}'.format(tf.__version__))
 
 # Check for a GPU
-if not tf.test.gpu_device_name():
-    warnings.warn('No GPU found. Please use a GPU to train your neural network.')
-else:
-    print('Default GPU Device: {}'.format(tf.test.gpu_device_name()))
+# if not tf.test.gpu_device_name():
+#     warnings.warn('No GPU found. Please use a GPU to train your neural network.')
+# else:
+#     print('Default GPU Device: {}'.format(tf.test.gpu_device_name()))
 
 
 def load_vgg(sess, vgg_path):
@@ -26,6 +26,7 @@ def load_vgg(sess, vgg_path):
     """
     # TODO: Implement function
     #   Use tf.saved_model.loader.load to load the model and weights
+    tf.saved_model.loader.load
     vgg_tag = 'vgg16'
     vgg_input_tensor_name = 'image_input:0'
     vgg_keep_prob_tensor_name = 'keep_prob:0'
@@ -33,7 +34,15 @@ def load_vgg(sess, vgg_path):
     vgg_layer4_out_tensor_name = 'layer4_out:0'
     vgg_layer7_out_tensor_name = 'layer7_out:0'
     
-    return None, None, None, None, None
+    tf.saved_model.loader.load(sess, [vgg_tag], vgg_path)
+    graph = tf.get_default_graph()
+    w1 = graph.get_tensor_by_name(vgg_input_tensor_name)
+    keep = graph.get_tensor_by_name(vgg_keep_prob_tensor_name)
+    l3 = graph.get_tensor_by_name(vgg_layer3_out_tensor_name)
+    l4 = graph.get_tensor_by_name(vgg_layer4_out_tensor_name)
+    l7 = graph.get_tensor_by_name(vgg_layer7_out_tensor_name)
+
+    return w1, keep, l3, l4, l7
 tests.test_load_vgg(load_vgg, tf)
 
 
@@ -47,7 +56,44 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     :return: The Tensor for the last layer of output
     """
     # TODO: Implement function
-    return None
+    conv_1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, 
+                                   padding= 'same', 
+                                   kernel_initializer= tf.random_normal_initializer(stddev=0.01),
+                                   kernel_regularizer= tf.contrib.layers.l2_regularizer(1e-3))
+    # upsample
+    layer_4_in_1 = tf.layers.conv2d_transpose(conv_1x1, num_classes, 4, 
+                                             strides= (2, 2), 
+                                             padding= 'same', 
+                                             kernel_initializer= tf.random_normal_initializer(stddev=0.01), 
+                                             kernel_regularizer= tf.contrib.layers.l2_regularizer(1e-3))
+    # make sure the shapes are the same!
+    # 1x1 convolution of vgg layer 4
+    layer_4_in_2 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1, 
+                                   padding= 'same', 
+                                   kernel_initializer= tf.random_normal_initializer(stddev=0.01), 
+                                   kernel_regularizer= tf.contrib.layers.l2_regularizer(1e-3))
+    # skip connection (element-wise addition)
+    layer_4_out = tf.add(layer_4_in_1, layer_4_in_2)
+    # upsample
+    layer_3_in_1 = tf.layers.conv2d_transpose(layer_4_out, num_classes, 4,  
+                                             strides= (2, 2), 
+                                             padding= 'same', 
+                                             kernel_initializer= tf.random_normal_initializer(stddev=0.01), 
+                                             kernel_regularizer= tf.contrib.layers.l2_regularizer(1e-3))
+    # 1x1 convolution of vgg layer 3
+    layer_3_in_2 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1, 
+                                   padding= 'same', 
+                                   kernel_initializer= tf.random_normal_initializer(stddev=0.01), 
+                                   kernel_regularizer= tf.contrib.layers.l2_regularizer(1e-3))
+    # skip connection (element-wise addition)
+    layer_3_out = tf.add(layer_3_in_1, layer_3_in_2)
+    # upsample
+    result = tf.layers.conv2d_transpose(layer_3_out, num_classes, 16,  
+                                               strides= (8, 8), 
+                                               padding= 'same', 
+                                               kernel_initializer= tf.random_normal_initializer(stddev=0.01), 
+                                               kernel_regularizer= tf.contrib.layers.l2_regularizer(1e-3))
+    return result
 tests.test_layers(layers)
 
 
