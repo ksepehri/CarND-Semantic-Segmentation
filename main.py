@@ -11,10 +11,10 @@ assert LooseVersion(tf.__version__) >= LooseVersion('1.0'), 'Please use TensorFl
 print('TensorFlow Version: {}'.format(tf.__version__))
 
 # Check for a GPU
-# if not tf.test.gpu_device_name():
-#     warnings.warn('No GPU found. Please use a GPU to train your neural network.')
-# else:
-#     print('Default GPU Device: {}'.format(tf.test.gpu_device_name()))
+if not tf.test.gpu_device_name():
+    warnings.warn('No GPU found. Please use a GPU to train your neural network.')
+else:
+    print('Default GPU Device: {}'.format(tf.test.gpu_device_name()))
 
 
 def load_vgg(sess, vgg_path):
@@ -168,7 +168,7 @@ def run():
         # Create function to get batches
         get_batches_fn = helper.gen_batch_function(os.path.join(data_dir, 'data_road/training'), image_shape)
 
-        epochs = 1
+        epochs = 56
         batch_size = 5
 
         correct_label = tf.placeholder(tf.int32, [None, None, None, num_classes], name='correct_label')
