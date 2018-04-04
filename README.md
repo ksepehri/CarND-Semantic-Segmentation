@@ -1,6 +1,28 @@
+[//]: # (Image References)
+
+[1]: ./images/um_000008.png "1"
+[2]: ./images/um_000033.png "2"
+[3]: ./images/uu_000002.png "3"
+[4]: ./images/uu_000025.png "4"
+[5]: ./images/uu_000091.png "5"
+
+
 # Semantic Segmentation
+
+![alt text][1]
+
 ### Introduction
-In this project, you'll label the pixels of a road in images using a Fully Convolutional Network (FCN).
+In this project, I labeled the pixels of a road in images using a Fully Convolutional Network (FCN). The network uses the architecture described in [this paper](https://people.eecs.berkeley.edu/~jonlong/long_shelhamer_fcn.pdf)
+and is trained on the [Kitti Road dataset](http://www.cvlibs.net/datasets/kitti/eval_road.php).
+### Design
+A pre-trained VGG-16 network was converted to a fully convolutional network. The loss function for the network is cross-entropy, and an Adam optimizer is used. For training each network, the code performs a hyperparameter search using 56 epochs with a batch size of 5.
+
+### Results
+
+![alt text][2]
+![alt text][3]
+![alt text][4]
+![alt text][5]
 
 ### Setup
 ##### Frameworks and Packages
